@@ -1,5 +1,5 @@
 from typing import *
-from _functools import reduce
+from functools import reduce, partial
 
 import bmesh
 import bpy
@@ -71,3 +71,41 @@ def get_face_with_verts(verts) -> BMFace:
         if face_has_verts(face, verts):
             return face
     return None
+
+
+# Credit: https://stackoverflow.com/a/48339861
+class Event(object):
+    def __init__(self):
+        self.callbacks = []
+
+    def notify(self, *args, **kwargs):
+        for callback in self.callbacks:
+            callback(*args, **kwargs)
+
+    def register(self, callback):
+        self.callbacks.append(callback)
+        return callback
+
+class DelayedEvent(Event):
+    def __init__(self, delay):
+        self.callbacks = []
+        self.delay = delay
+
+    def notify_listeners(self, *args, **kwargs):      
+        for callback in self.callbacks:
+                    callback(*args, **kwargs)
+        return None
+
+    def notify(self, *args, **kwargs):
+        bpy.app.timers.register(partial(self.notify_listeners,*args, **kwargs), first_interval=self.delay)
+
+    def register(self, callback):
+        self.callbacks.append(callback)
+        return callback
+
+def get_addon_preferences():
+    preferences = bpy.context.preferences
+    return preferences.addons[__package__].preferences
+
+def get_op_module_and_func(id_name):
+    return id_name.split('.', 1)

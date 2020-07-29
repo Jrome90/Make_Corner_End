@@ -11,20 +11,26 @@ from .utils import (get_selected_edges,
                     normalize
                     )
 
-class MESH_OT_BuildEnd(bpy.types.Operator):
-    bl_idname = "mesh.build_end"
+class BCE_OT_BuildEnd(bpy.types.Operator):
+    bl_idname = "bce.build_end"
     bl_label = "build end"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Builds a quad ending at two parallel loops"
 
     @classmethod
     def poll(cls, context):
-        return (
-                context.space_data.type == 'VIEW_3D'
-                and context.active_object is not None
-                and context.active_object.type == "MESH"
-                and context.active_object.mode == 'EDIT'
-        )
+        if context is not None:
+            if context.space_data is None:
+                print("space_data is none")
+                return False              
+            else:
+                return (
+                    context.space_data.type == 'VIEW_3D'
+                    and context.active_object is not None
+                    and context.active_object.type == "MESH"
+                    and context.active_object.mode == 'EDIT'
+                    )
+        return False
 
     def execute(self, context):
         self.execute_build_end(context)
@@ -88,7 +94,6 @@ class MESH_OT_BuildEnd(bpy.types.Operator):
                         bridge_list.append(new_edge)
                     bmesh.ops.bridge_loops(bm, edges=bridge_list)
 
-        bpy.ops.mesh.select_all(action='DESELECT')
 
         bm.faces.ensure_lookup_table()
         bm.edges.ensure_lookup_table()
@@ -101,3 +106,4 @@ class MESH_OT_BuildEnd(bpy.types.Operator):
         bm.select_flush_mode()
 
         bmesh.update_edit_mesh(mesh, True)
+

@@ -10,23 +10,29 @@ from .utils import (get_selected_edges,
                     get_face_loops_for_vert,
                     get_face_with_verts,
                     get_vertex_shared_by_edges,
-                    normalize
+                    normalize,
                     )
 
-class MESH_OT_BuildCorner(bpy.types.Operator):
-    bl_idname = "mesh.build_corner"
+class BCE_OT_BuildCorner(bpy.types.Operator):
+    bl_idname = "bce.build_corner"
     bl_label = "build corner"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Builds a quad corner"
 
     @classmethod
     def poll(cls, context):
-        return (
-                context.space_data.type == 'VIEW_3D'
-                and context.active_object is not None
-                and context.active_object.type == "MESH"
-                and context.active_object.mode == 'EDIT'
-        )
+        if context is not None:
+            if context.space_data is None:
+                print("space_data is none")
+                return False              
+            else:
+                return (
+                    context.space_data.type == 'VIEW_3D'
+                    and context.active_object is not None
+                    and context.active_object.type == "MESH"
+                    and context.active_object.mode == 'EDIT'
+                    )
+        return False
 
     def execute(self, context):
         self.execute_build_corner(context)
@@ -90,10 +96,9 @@ class MESH_OT_BuildCorner(bpy.types.Operator):
 
                 bmesh.ops.bridge_loops(bm, edges=bridge_list)
 
-
     def execute_build_corner(self, context):
         # Get the active mesh
-        obj = bpy.context.edit_object
+        obj = context.active_object
         mesh = obj.data
 
         bm = bmesh.from_edit_mesh(mesh)
@@ -114,8 +119,6 @@ class MESH_OT_BuildCorner(bpy.types.Operator):
                 vert_pairs.append(list(edge.verts))
                 face_set.update([face.index for face in edge.link_faces])
                 bmesh.ops.dissolve_edges(bm, edges=[edge])
-            else:
-                return
 
         face_vert_map = defaultdict(list)
         for vert in get_selected_verts(bm):
@@ -126,8 +129,6 @@ class MESH_OT_BuildCorner(bpy.types.Operator):
         for verts in face_vert_map.values():
             if len(verts) == 2:
                 vert_pairs.append(verts)
-
-        bpy.ops.mesh.select_all(action='DESELECT')
 
         for vert_pair in vert_pairs:
             self.build_corner(bm, vert_pair)

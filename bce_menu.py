@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Menu
 
-class MESH_MT_BCE_Menu(Menu):
+class BCE_MT_PieMenu(Menu):
     bl_idname = "MESH_MT_BCE_Menu"
     bl_label = ""
 
