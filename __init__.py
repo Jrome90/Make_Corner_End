@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Jrome",
     "description" : "Build a Corner or an End",
     "blender" : (2, 90, 0),
-    "version" : (0, 1, 0),
+    "version" : (0, 3, 0),
     "location" : "",
     "warning" : "",
     "category" : "Mesh"
