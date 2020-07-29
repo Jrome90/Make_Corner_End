@@ -9,8 +9,8 @@ class BCE_MT_PieMenu(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.operator("mesh.build_end")
-        pie.operator("mesh.build_corner")
+        pie.operator("bce.build_end")
+        pie.operator("bce.build_corner")
 
         if hasattr(bpy.types, bpy.ops.mesh.connect_edges.idname()):
             pie.operator(bpy.ops.mesh.connect_edges.idname())
