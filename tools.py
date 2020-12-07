@@ -7,10 +7,9 @@ from bpy.types import WorkSpaceTool, Panel
 from bpy.utils.toolsystem import ToolDef
 from bpy.ops import BPyOpsSubModOp
 
-from . build_corner import BCE_OT_BuildCorner
-from . build_end import BCE_OT_BuildEnd
-from . operator_service import BCE_OT_OperatorService
-from . preferences import BCE_Preferences
+from . make_corner import MCE_OT_MakeCorner
+from . make_end import MCE_OT_MakeEnd
+from . preferences import MCE_Preferences
 from . utils import get_op_module_and_func
 
 
@@ -46,81 +45,42 @@ def execute_operator(operator):
     bpy.ops.wm.tool_set_by_id(context_override,name="builtin.select_box")
 
     module, func = get_op_module_and_func(operator.bl_idname)
-    BPyOpsSubModOp(module, func)(context_override,'INVOKE_DEFAULT')
+    op_func = BPyOpsSubModOp(module, func)
+    op_func(context_override,'INVOKE_DEFAULT')
 
 
-class BCE_ToolBase(WorkSpaceTool):
+class MCE_ToolBase(WorkSpaceTool):
     bl_space_type='VIEW_3D'
     bl_context_mode='EDIT_MESH'
 
-    bl_keymap = (
-        ("bce.operator_service", {"type": 'MOUSEMOVE', "value": 'ANY'},
-        None),
-    )
-
     def get_operator():
         raise NotImplementedError
 
-    @staticmethod
-    def event_raised(context, event):
-        raise NotImplementedError
+class Tool_MakeCorner(MCE_ToolBase):
 
-class Tool_BuildCorner(BCE_ToolBase):
-
-    bl_idname = "bce_tool_build_corner"
-    bl_label = "Build Corner"
-    bl_description = ( "Builds a quad corner." )
-    bl_icon = os.path.join(os.path.join(os.path.dirname(__file__), "icons") , "bce.build_corner")
-    bl_widget  = "BCE_GGT_BuildCorner"
+    bl_idname = "mce_tool_make_corner"
+    bl_label = "Make Corner"
+    bl_description = ( "Makes a quad corner." )
+    bl_icon = os.path.join(os.path.join(os.path.dirname(__file__), "icons") , "mce.make_corner")
+    bl_widget  = "MCE_GGT_MakeCorner"
 
     def get_operator():
-        return BCE_OT_BuildCorner
-
-    @staticmethod
-    def event_raised(context, event):
-                
-        try:
-            active_obj = bpy.context.scene.view_layers[0].objects.active
-            context_override = get_context_overrides(active_obj)
-            tools = context_override["workspace"].tools
-            current_active_tool = tools.from_space_view3d_mode('EDIT_MESH').idname
-
-            if current_active_tool == __class__.bl_idname:
-                module, func = get_op_module_and_func(__class__.get_operator().bl_idname)
-                BPyOpsSubModOp(module, func)(context_override,'INVOKE_DEFAULT')
-
-        except BaseException as e:
-            raise e
+        return MCE_OT_MakeCorner
 
 
-class Tool_BuildEnd(BCE_ToolBase):
+class Tool_MakeEnd(MCE_ToolBase):
 
-    bl_idname = "bce_tool_build_end"
-    bl_label = "Build End"
-    bl_description = ( "Builds a quad ending at two parallel loops." )
-    bl_icon = os.path.join(os.path.join(os.path.dirname(__file__), "icons") , "bce.build_end")
-    bl_widget  = "BCE_GGT_BuildEnd"
+    bl_idname = "mce_tool_make_end"
+    bl_label = "Make End"
+    bl_description = ( "Makes a quad ending at two parallel loops." )
+    bl_icon = os.path.join(os.path.join(os.path.dirname(__file__), "icons") , "mce.make_end")
+    bl_widget  = "MCE_GGT_MakeEnd"
 
     def get_operator():
-        return BCE_OT_BuildEnd
+        return MCE_OT_MakeEnd
 
-    @staticmethod
-    def event_raised(context, event):
-                
-        try:
-            active_obj = bpy.context.scene.view_layers[0].objects.active
-            context_override = get_context_overrides(active_obj)
-            tools = context_override["workspace"].tools
-            current_active_tool = tools.from_space_view3d_mode('EDIT_MESH').idname
-            
-            if current_active_tool == __class__.bl_idname:
-                module, func = get_op_module_and_func(__class__.get_operator().bl_idname)
-                BPyOpsSubModOp(module, func)(context_override,'INVOKE_DEFAULT')
-
-        except BaseException as e:
-            raise e
     
-class BCE_GGT_GizmoGroupBase(bpy.types.GizmoGroup):
+class MCE_GGT_GizmoGroupBase(bpy.types.GizmoGroup):
     bl_label = "(internal)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -144,24 +104,21 @@ class BCE_GGT_GizmoGroupBase(bpy.types.GizmoGroup):
         tools = bpy.context.workspace.tools
         current_active_tool = tools.from_space_view3d_mode(bpy.context.mode).idname
         if current_active_tool == tool.bl_idname:
-            if get_addon_preferences().interactive:
-                BCE_OT_OperatorService.register_listener(tool, tool.event_raised)
-            else:
-                bpy.app.timers.register(partial(execute_operator, tool.get_operator()), first_interval=0.01)
+            bpy.app.timers.register(partial(execute_operator, tool.get_operator()), first_interval=0.01)
         
 
-class BCE_GGT_BuildCorner(BCE_GGT_GizmoGroupBase):
-    tool = Tool_BuildCorner
+class MCE_GGT_MakeCorner(MCE_GGT_GizmoGroupBase):
+    tool = Tool_MakeCorner
     bl_idname = tool.bl_widget
-    bl_label = "Build Corner GG"
+    bl_label = "Make Corner GG"
 
     def get_tool(self):
         return __class__.tool
 
-class BCE_GGT_BuildEnd(BCE_GGT_GizmoGroupBase):
-    tool = Tool_BuildEnd
+class MCE_GGT_MakeEnd(MCE_GGT_GizmoGroupBase):
+    tool = Tool_MakeEnd
     bl_idname = tool.bl_widget
-    bl_label = "Build End GG"
+    bl_label = "Make End GG"
 
     def get_tool(self):
         return __class__.tool

@@ -4,7 +4,6 @@ from functools import reduce, partial
 import bmesh
 import bpy
 from bmesh.types import *
-from mathutils import Vector
 
 
 def bmesh_face_loop_walker(face: BMFace, start_loop=None):
@@ -27,7 +26,7 @@ def get_face_loop_for_edge(face: BMFace, edge: BMEdge) -> BMLoop:
             return loop
     return None
 
-
+# Given a face and a vert on the face, return both face loops that the vertex is shared by. 
 def get_face_loops_for_vert(vert: BMVert, face: BMFace):
     loops = []
     for loop in vert.link_loops:
@@ -35,6 +34,11 @@ def get_face_loops_for_vert(vert: BMVert, face: BMFace):
             loops.append(loop)
     return loops
 
+def get_face_loop_for_vert(face: BMFace, vert: BMVert) -> BMLoop:
+    for loop in face.loops:
+        if loop.vert.index == vert.index:
+            return loop
+    return None
 
 def get_selected_verts(bm: BMesh) -> List[BMVert]:
     return [e for e in bm.verts if e.select]
@@ -42,11 +46,6 @@ def get_selected_verts(bm: BMesh) -> List[BMVert]:
 
 def get_selected_edges(mesh: BMesh) -> List[BMEdge]:
     return [e for e in mesh.edges if e.select]
-
-
-def normalize(vector: Vector) -> Vector:
-    vector.normalize()
-    return vector
 
 
 def get_vertex_shared_by_edges(edges) -> BMVert:
@@ -72,40 +71,10 @@ def get_face_with_verts(verts) -> BMFace:
             return face
     return None
 
-
-# Credit: https://stackoverflow.com/a/48339861
-class Event(object):
-    def __init__(self):
-        self.callbacks = []
-
-    def notify(self, *args, **kwargs):
-        for callback in self.callbacks:
-            callback(*args, **kwargs)
-
-    def register(self, callback):
-        self.callbacks.append(callback)
-        return callback
-
-class DelayedEvent(Event):
-    def __init__(self, delay):
-        self.callbacks = []
-        self.delay = delay
-
-    def notify_listeners(self, *args, **kwargs):      
-        for callback in self.callbacks:
-                    callback(*args, **kwargs)
-        return None
-
-    def notify(self, *args, **kwargs):
-        bpy.app.timers.register(partial(self.notify_listeners,*args, **kwargs), first_interval=self.delay)
-
-    def register(self, callback):
-        self.callbacks.append(callback)
-        return callback
-
 def get_addon_preferences():
     preferences = bpy.context.preferences
     return preferences.addons[__package__].preferences
+
 
 def get_op_module_and_func(id_name):
     return id_name.split('.', 1)

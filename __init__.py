@@ -12,9 +12,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "Build_Corner_End",
+    "name" : "Make_Corner_End",
     "author" : "Jrome",
-    "description" : "Build a Corner or an End",
+    "description" : "Make Corner: Select the vertices that terminates a loop on each adjacent edge for the face, or select an edge that connects the two vertices. \n Make End: Select the vertices or the edge between them that are created when two parellel edge loops terminate at the same side.",
     "blender" : (2, 90, 0),
     "version" : (0, 3, 0),
     "location" : "",
@@ -29,12 +29,11 @@ if "bpy" in locals():
 else:
 
     from . import (
-        build_corner,
-        build_end,
-        bce_menu,
+        make_corner,
+        make_end,
+        mce_menu,
         tools,
-        operator_service,
-        preferences
+        preferences,
     )
 import os
 import bpy
@@ -43,36 +42,23 @@ from bpy.types import PropertyGroup
 from bpy.props import BoolProperty
 from bpy.utils.toolsystem import ToolDef
 
-from . preferences import BCE_Preferences
-from . bce_menu import BCE_MT_PieMenu
-from . build_corner import BCE_OT_BuildCorner
-from . build_end import BCE_OT_BuildEnd
-from . operator_service import BCE_OT_OperatorService
-from . tools import Tool_BuildCorner, BCE_GGT_BuildCorner, BCE_GGT_BuildEnd, Tool_BuildEnd
+from . preferences import MCE_Preferences
+from . mce_menu import MCE_MT_PieMenu
+from . make_corner import MCE_OT_MakeCorner
+from . make_end import MCE_OT_MakeEnd
+from . four_to_two import MCE_OT_MakeFourToTwo
+from . five_to_three import MCE_OT_MakeFiveToThree
+from . three_to_two import MCE_OT_MakeThreeToTwo
+from . tools import Tool_MakeCorner, MCE_GGT_MakeCorner, MCE_GGT_MakeEnd, Tool_MakeEnd
 
-# def register_icons():
-#     path = os.path.join(os.path.dirname(__file__), "icons")
-#     icons = previews.new()
-
-#     for i in os.listdir(path):
-#         if i.endswith(".png"):
-#             icon_name = i[:-4]
-#             file_path = os.path.join(path, i)
-
-#             icons.load(icon_name, file_path, 'IMAGE')
-
-#     return icons
-
-# def unregister_icons(icons):
-#     previews.remove(icons)
 
 def get_addon_preferences():
     preferences = bpy.context.preferences
     return preferences.addons[__package__].preferences
 
 def add_to_toolbar():
-    bpy.utils.register_tool(Tool_BuildCorner,  after={"builtin.loop_cut"} , group=True)
-    bpy.utils.register_tool(Tool_BuildEnd, group=False)
+    bpy.utils.register_tool(Tool_MakeCorner)
+    bpy.utils.register_tool(Tool_MakeEnd, after={"mce.make_corner"})
 
 def add_to_context_menu():
      bpy.types.VIEW3D_MT_edit_mesh_context_menu.append(menu_draw)
@@ -84,16 +70,21 @@ def menu_draw(self, context):
     layout = self.layout
     layout.separator()
     layout.operator_context = "INVOKE_DEFAULT"
-    layout.operator(build_corner.BCE_OT_BuildCorner.bl_idname, text='Build Corner')
-    layout.operator(build_end.BCE_OT_BuildEnd.bl_idname, text='Build End')
+    layout.operator(make_corner.MCE_OT_MakeCorner.bl_idname, text='Make Corner')
+    layout.operator(make_end.MCE_OT_MakeEnd.bl_idname, text='Make End')
+    layout.operator(four_to_two.MCE_OT_MakeFourToTwo.bl_idname, text='Four To Two')
+    layout.operator(five_to_three.MCE_OT_MakeFiveToThree.bl_idname, text='Five To Three')
+    layout.operator(three_to_two.MCE_OT_MakeThreeToTwo.bl_idname, text='Three To Two')
 
-classes = [ BCE_Preferences,
-            BCE_MT_PieMenu,
-            BCE_OT_BuildCorner,
-            BCE_OT_BuildEnd,
-            BCE_OT_OperatorService,
-            BCE_GGT_BuildCorner,
-            BCE_GGT_BuildEnd
+classes = [ MCE_Preferences,
+            MCE_MT_PieMenu,
+            MCE_OT_MakeCorner,
+            MCE_OT_MakeEnd,
+            MCE_GGT_MakeCorner,
+            MCE_GGT_MakeEnd,
+            MCE_OT_MakeFourToTwo,
+            MCE_OT_MakeFiveToThree,
+            MCE_OT_MakeThreeToTwo,
             ]
 
 addon_keymaps = []
@@ -117,13 +108,13 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
 
-    kmi_menu = km.keymap_items.new("wm.call_menu_pie", 'COMMA', 'PRESS', alt=True, repeat=False).properties.name = BCE_MT_PieMenu.bl_idname
+    kmi_menu = km.keymap_items.new("wm.call_menu_pie", 'COMMA', 'PRESS', alt=True, repeat=False).properties.name = MCE_MT_PieMenu.bl_idname
     
 def unregister():
 
     if get_addon_preferences().add_to_toolbar:
-        bpy.utils.unregister_tool(Tool_BuildCorner)
-        bpy.utils.unregister_tool(Tool_BuildEnd)
+        bpy.utils.unregister_tool(Tool_MakeCorner)
+        bpy.utils.unregister_tool(Tool_MakeEnd)
 
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
