@@ -10,6 +10,3 @@
 * Make a valid selection of vertices or edges for either the Make Corner or the Make End operator.
 * Open the pie-menu with ALT+COMMA
 * Choose the operator to use.
-
-For an example of a valid selection for each tool go here:
-https://github.com/Jrome90/Make_Corner_End/wiki/Usage
