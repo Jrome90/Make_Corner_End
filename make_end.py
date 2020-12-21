@@ -15,7 +15,7 @@ class MCE_OT_MakeEnd(bpy.types.Operator):
     bl_idname = "mce.make_end"
     bl_label = "make end"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Make a quad ending at two parallel loops"
+    bl_description = "Make a quad end."
 
     position: FloatProperty(name="Position", default=0.5, description="")
 

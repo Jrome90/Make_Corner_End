@@ -23,7 +23,7 @@ class MCE_OT_MakeFiveToThree(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = ""
 
-    alt_algo: BoolProperty(name="Secondary", default=False, description="Atlernative algorithm")
+    alt_algo: BoolProperty(name="Secondary", default=False, description="Alternative topology")
     straight: BoolProperty(name="Straight", default=True, description="Better topology with straight inner edges")
     position: FloatProperty(name="Position", default=0.5, description="")
 
@@ -40,14 +40,14 @@ class MCE_OT_MakeFiveToThree(bpy.types.Operator):
         layout = self.layout
         col = layout.column()
         row = col.row()
-        row.prop(self, "Position")
+        row.prop(self, "position")
 
         if not self.alt_algo:
             row2 = col.row()
-            row2.prop(self, "Straight")
+            row2.prop(self, "straight")
 
         row3 = col.row()
-        row3.prop(self, "Alt_algo")
+        row3.prop(self, "alt_algo")
 
        
 
@@ -80,7 +80,7 @@ class MCE_OT_MakeFiveToThree(bpy.types.Operator):
             vert_b = edge_b_loop.vert.index
         
             vert_a2 = face_loops[(middle_edge_loop_index + 5) % len(face_loops)].vert.index
-            vert_b2 = face_loops[middle_edge_loop_index -4].vert.index
+            vert_b2 = face_loops[middle_edge_loop_index - 4].vert.index
 
             bm.verts.ensure_lookup_table()
             new_face_a = bmesh.utils.face_split(face, bm.verts[vert_a], bm.verts[vert_a2])[0]       

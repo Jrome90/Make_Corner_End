@@ -47,7 +47,6 @@ class MCE_OT_MakeThreeToTwo(bpy.types.Operator):
                 face_loops.append(loop)
                 edge_net.append(loop.edge)
 
-
             edge_a = face_loops[2].edge
             edge_b = face_loops[-2].edge
 

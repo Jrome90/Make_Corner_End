@@ -72,7 +72,7 @@ class Tool_MakeEnd(MCE_ToolBase):
 
     bl_idname = "mce_tool_make_end"
     bl_label = "Make End"
-    bl_description = ( "Makes a quad ending at two parallel loops." )
+    bl_description = ( "Makes a quad end." )
     bl_icon = os.path.join(os.path.join(os.path.dirname(__file__), "icons") , "mce.make_end")
     bl_widget  = "MCE_GGT_MakeEnd"
 

@@ -15,6 +15,6 @@ class MCE_MT_PieMenu(Menu):
         pie.operator("mce.four_to_two")
         pie.operator("mce.five_to_three")
 
-        if hasattr(bpy.types, bpy.ops.mesh.connect_edges.idname()):
-            pie.operator(bpy.ops.mesh.connect_edges.idname())
+        # if hasattr(bpy.types, bpy.ops.mesh.connect_edges.idname()):
+        #     pie.operator(bpy.ops.mesh.connect_edges.idname())
 

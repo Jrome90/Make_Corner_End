@@ -17,7 +17,7 @@ class MCE_OT_MakeCorner(bpy.types.Operator):
     bl_idname = "mce.make_corner"
     bl_label = "make corner"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Make a quad corner"
+    bl_description = "Make a quad corner."
 
     position: FloatProperty(name="Position", default=0.0, description="")
     uneven_spacing: BoolProperty(name="Uneven spacing", default=False, description="")
