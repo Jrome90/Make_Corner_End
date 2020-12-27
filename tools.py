@@ -5,7 +5,7 @@ from functools import partial
 import bpy
 from bpy.types import WorkSpaceTool, Panel
 from bpy.utils.toolsystem import ToolDef
-from bpy.ops import BPyOpsSubModOp
+from bpy.ops import _BPyOpsSubModOp
 
 from . make_corner import MCE_OT_MakeCorner
 from . make_end import MCE_OT_MakeEnd
@@ -45,7 +45,7 @@ def execute_operator(operator):
     bpy.ops.wm.tool_set_by_id(context_override,name="builtin.select_box")
 
     module, func = get_op_module_and_func(operator.bl_idname)
-    op_func = BPyOpsSubModOp(module, func)
+    op_func = _BPyOpsSubModOp(module, func)
     op_func(context_override,'INVOKE_DEFAULT')
 
 
