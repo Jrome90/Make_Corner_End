@@ -23,9 +23,11 @@ def get_context_overrides(*objects):
         window = bpy.context.window_manager.windows[0]
         area = None
         for area in window.screen.areas:
+            print("area type: {0}".format(area.type))
             if area.type == 'VIEW_3D':
                 area = area
-
+                break
+       
         return {'window': window, 'screen': window.screen, 'area' : area, "workspace" : window.workspace}
 
     context = get_base_context()
@@ -41,14 +43,14 @@ def execute_operator(operator):
     context_override = get_context_overrides(active_obj)
 
      # Emulate a single button press by setting the tool to select box
-    bpy.ops.wm.tool_set_by_id(context_override,name="builtin.select_box")
+    bpy.ops.wm.tool_set_by_id(context_override, name="builtin.select_box")
 
-    _, func = get_op_module_and_func(operator.bl_idname)
-
+    module, func = get_op_module_and_func(operator.bl_idname)
+    
     if func== "make_corner":
-        bpy.ops.mce.make_corner('EXEC_DEFAULT')
+        bpy.ops.mce.make_corner(context_override, 'EXEC_DEFAULT')
     elif func == "make_end":
-        bpy.ops.mce.make_end('EXEC_DEFAULT')
+        bpy.ops.mce.make_end(context_override, 'EXEC_DEFAULT')
 
 
 class MCE_ToolBase(WorkSpaceTool):
