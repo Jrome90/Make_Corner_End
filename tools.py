@@ -5,7 +5,6 @@ from functools import partial
 import bpy
 from bpy.types import WorkSpaceTool, Panel
 from bpy.utils.toolsystem import ToolDef
-from bpy.ops import _BPyOpsSubModOp
 
 from . make_corner import MCE_OT_MakeCorner
 from . make_end import MCE_OT_MakeEnd
@@ -44,9 +43,12 @@ def execute_operator(operator):
      # Emulate a single button press by setting the tool to select box
     bpy.ops.wm.tool_set_by_id(context_override,name="builtin.select_box")
 
-    module, func = get_op_module_and_func(operator.bl_idname)
-    op_func = _BPyOpsSubModOp(module, func)
-    op_func(context_override,'INVOKE_DEFAULT')
+    _, func = get_op_module_and_func(operator.bl_idname)
+
+    if func== "make_corner":
+        bpy.ops.mce.make_corner('EXEC_DEFAULT')
+    elif func == "make_end":
+        bpy.ops.mce.make_end('EXEC_DEFAULT')
 
 
 class MCE_ToolBase(WorkSpaceTool):
