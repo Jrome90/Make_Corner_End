@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Jrome",
     "description" : "Make Corner: Select the vertices that terminates a loop on each adjacent edge for the face, or select an edge that connects the two vertices. \n Make End: Select the vertices or the edge between them that are created when two parellel edge loops terminate at the same side.",
     "blender" : (2, 91, 0),
-    "version" : (0, 4, 1),
+    "version" : (0, 4, 2),
     "location" : "",
     "warning" : "",
     "category" : "Mesh"
