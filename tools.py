@@ -23,7 +23,6 @@ def get_context_overrides(*objects):
         window = bpy.context.window_manager.windows[0]
         area = None
         for area in window.screen.areas:
-            print("area type: {0}".format(area.type))
             if area.type == 'VIEW_3D':
                 area = area
                 break
