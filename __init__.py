@@ -64,7 +64,7 @@ def get_addon_preferences():
 def add_to_toolbar():
     bpy.utils.register_tool(Tool_MakeCorner, separator=True)
     bpy.utils.register_tool(Tool_MakeEnd, after={Tool_MakeCorner.bl_idname})
-    
+
     if get_addon_preferences().add_optional_to_toolbar:
         bpy.utils.register_tool(Tool_FourToTwo, after={Tool_MakeEnd.bl_idname}, group=True)
         bpy.utils.register_tool(Tool_FiveToThree, after={Tool_FourToTwo.bl_idname})
