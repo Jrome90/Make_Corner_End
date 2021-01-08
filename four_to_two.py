@@ -18,7 +18,7 @@ from .make_corner import MCE_OT_MakeCorner
 
 class MCE_OT_MakeFourToTwo(bpy.types.Operator):
     bl_idname = "mce.four_to_two"
-    bl_label = "make four to two"
+    bl_label = "four to two"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = ""
 

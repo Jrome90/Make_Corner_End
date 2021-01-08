@@ -19,7 +19,7 @@ from .make_corner import MCE_OT_MakeCorner
 
 class MCE_OT_MakeFiveToThree(bpy.types.Operator):
     bl_idname = "mce.five_to_three"
-    bl_label = "make five to three"
+    bl_label = "five to three"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = ""
 

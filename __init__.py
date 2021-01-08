@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Jrome",
     "description" : "Make Corner: Select the vertices that terminates a loop on each adjacent edge for the face, or select an edge that connects the two vertices. \n Make End: Select the vertices or the edge between them that are created when two parellel edge loops terminate at the same side.",
     "blender" : (2, 90, 0),
-    "version" : (0, 3, 0),
+    "version" : (0, 5, 0),
     "location" : "",
     "warning" : "",
     "category" : "Mesh"
@@ -31,6 +31,9 @@ else:
     from . import (
         make_corner,
         make_end,
+        four_to_two,
+        five_to_three,
+        three_to_two,
         mce_menu,
         tools,
         preferences,
@@ -49,7 +52,9 @@ from . make_end import MCE_OT_MakeEnd
 from . four_to_two import MCE_OT_MakeFourToTwo
 from . five_to_three import MCE_OT_MakeFiveToThree
 from . three_to_two import MCE_OT_MakeThreeToTwo
-from . tools import Tool_MakeCorner, MCE_GGT_MakeCorner, MCE_GGT_MakeEnd, Tool_MakeEnd
+from . tools import (Tool_MakeCorner, MCE_GGT_MakeCorner, MCE_GGT_MakeEnd, Tool_MakeEnd, 
+                    Tool_FourToTwo, MCE_GGT_FourToTwo, Tool_FiveToThree, MCE_GGT_FiveToThree, Tool_FiveToThreeAlt, MCE_GGT_FiveToThreeAlt,
+                    Tool_ThreeToTwo, MCE_GGT_ThreeToTwo)
 
 
 def get_addon_preferences():
@@ -57,8 +62,14 @@ def get_addon_preferences():
     return preferences.addons[__package__].preferences
 
 def add_to_toolbar():
-    bpy.utils.register_tool(Tool_MakeCorner)
-    bpy.utils.register_tool(Tool_MakeEnd, after={"mce.make_corner"})
+    bpy.utils.register_tool(Tool_MakeCorner, separator=True)
+    bpy.utils.register_tool(Tool_MakeEnd, after={Tool_MakeCorner.bl_idname})
+    
+    if get_addon_preferences().add_optional_to_toolbar:
+        bpy.utils.register_tool(Tool_FourToTwo, after={Tool_MakeEnd.bl_idname}, group=True)
+        bpy.utils.register_tool(Tool_FiveToThree, after={Tool_FourToTwo.bl_idname})
+        bpy.utils.register_tool(Tool_FiveToThreeAlt, after={Tool_FiveToThree.bl_idname})
+        bpy.utils.register_tool(Tool_ThreeToTwo, after={Tool_FiveToThreeAlt.bl_idname})
 
 def add_to_context_menu():
      bpy.types.VIEW3D_MT_edit_mesh_context_menu.append(menu_draw)
@@ -83,8 +94,12 @@ classes = [ MCE_Preferences,
             MCE_GGT_MakeCorner,
             MCE_GGT_MakeEnd,
             MCE_OT_MakeFourToTwo,
+            MCE_GGT_FourToTwo,
             MCE_OT_MakeFiveToThree,
+            MCE_GGT_FiveToThree,
+            MCE_GGT_FiveToThreeAlt,
             MCE_OT_MakeThreeToTwo,
+            MCE_GGT_ThreeToTwo
             ]
 
 addon_keymaps = []
@@ -115,6 +130,11 @@ def unregister():
     if get_addon_preferences().add_to_toolbar:
         bpy.utils.unregister_tool(Tool_MakeCorner)
         bpy.utils.unregister_tool(Tool_MakeEnd)
+        if get_addon_preferences().add_optional_to_toolbar:
+            bpy.utils.unregister_tool(Tool_FourToTwo)
+            bpy.utils.unregister_tool(Tool_FiveToThree)
+            bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
+            bpy.utils.unregister_tool(Tool_ThreeToTwo)
 
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
