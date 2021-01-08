@@ -42,13 +42,13 @@ def execute_operator(operator):
     active_obj = bpy.context.scene.view_layers[0].objects.active
     context_override = get_context_overrides(active_obj)
 
+    tools = context_override["workspace"].tools
+    current_active_tool = tools.from_space_view3d_mode(bpy.context.mode).idname
+
     # Emulate a single button press by setting the tool to select box
     bpy.ops.wm.tool_set_by_id(context_override,name="builtin.select_box")
 
     _, func = get_op_module_and_func(operator.bl_idname)
-
-    tools = context_override["workspace"].tools
-    current_active_tool = tools.from_space_view3d_mode(bpy.context.mode).idname
 
     if func == "make_corner":
         bpy.ops.mce.make_corner('EXEC_DEFAULT')

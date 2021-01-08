@@ -22,8 +22,7 @@ class MCE_OT_MakeEnd(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return (
-            context.space_data.type == 'VIEW_3D'
-            and context.active_object is not None
+            context.active_object is not None
             and context.active_object.type == "MESH"
             and context.active_object.mode == 'EDIT'
             )
