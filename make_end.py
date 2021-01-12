@@ -9,6 +9,9 @@ from bmesh.types import *
 from .utils import (get_selected_edges,
                     get_face_loop_for_edge,
                     bmesh_face_loop_walker,
+                    get_face_with_edges,
+                    bmesh_subdivide_edge,
+                    get_addon_preferences,
                     )
 
 class MCE_OT_MakeEnd(bpy.types.Operator):
@@ -86,6 +89,28 @@ class MCE_OT_MakeEnd(bpy.types.Operator):
                 if len(face.edges) == 6:
                     edge_loop = get_face_loop_for_edge(face, edge)
                     self.make_end(bm, edge_loop, face, self.position)
+
+                    if get_addon_preferences().use_with_quads:
+                        # Are we in edge select mode?
+                        if context.scene.tool_settings.mesh_select_mode[1] == True:
+                            bm.select_history.remove(edge)
+                            
+        if get_addon_preferences().use_with_quads:
+            # Are we in edge select mode?
+            if context.scene.tool_settings.mesh_select_mode[1] == True:
+                    for i in range(0, len(bm.select_history), 2):
+
+                        selected_edges = [bm.select_history[i], bm.select_history[i+1]]
+                        face = get_face_with_edges(selected_edges)
+
+                        if face is not None and len(face.edges) == 4:
+                            new_geom = bmesh_subdivide_edge(bm, bm.select_history[i], 2)
+                            new_edges = list(filter(lambda element : isinstance(element, BMEdge), new_geom))
+                            
+                            edge = new_edges[1]
+                            edge_loop = get_face_loop_for_edge(face, edge)
+                            self.make_end(bm, edge_loop, face, self.position)
+
 
         bm.faces.ensure_lookup_table()
         bm.edges.ensure_lookup_table()

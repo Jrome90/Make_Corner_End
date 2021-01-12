@@ -5,6 +5,24 @@ import bmesh
 import bpy
 from bmesh.types import *
 
+def bmesh_loop_index_update(bm: BMesh):
+    index = 0
+    for face in bm.faces:
+        for loop in face.loops:
+            loop.index = index
+            index += 1
+
+
+def bmesh_subdivide_edge(bm: BMesh, edge: BMEdge, n=1):
+    ret = []
+    for i in range(0, n):
+        percent = 1.0 / float((n + 1 - i))
+        ret.extend(bmesh.utils.edge_split(edge, edge.verts[0], percent))
+
+    bm.verts.index_update()
+    bm.edges.index_update()
+    bmesh_loop_index_update(bm)
+    return ret
 
 def bmesh_face_loop_walker(face: BMFace, start_loop=None):
 
@@ -71,6 +89,22 @@ def get_face_with_verts(verts) -> BMFace:
             return face
     return None
 
+
+def face_has_edges(face: BMFace, edges) -> bool:
+    return len(set(edges).intersection(set(face.edges))) == len(edges)
+
+
+def get_face_with_edges(edges) -> BMFace:
+    assert (len(edges) >= 2)
+
+    faces = {face for edge in edges for face in edge.link_faces}
+
+    while len(faces) > 0:
+        face = faces.pop()
+        if face_has_edges(face, edges):
+            return face
+    return None
+
 def get_addon_preferences():
     preferences = bpy.context.preferences
     return preferences.addons[__package__].preferences
@@ -78,3 +112,7 @@ def get_addon_preferences():
 
 def get_op_module_and_func(id_name):
     return id_name.split('.', 1)
+
+
+def filter_by_type(l, type_of):
+    return [n for n in l if isinstance(n, type_of)]

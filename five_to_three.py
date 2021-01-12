@@ -10,8 +10,11 @@ from .utils import (get_selected_edges,
                     get_face_loops_for_vert,
                     bmesh_face_loop_walker,
                     get_face_with_verts,
+                    get_face_with_edges,
                     face_has_verts,
                     get_vertex_shared_by_edges,
+                    bmesh_subdivide_edge,
+                    get_addon_preferences,
                     )
 
 from .make_end import MCE_OT_MakeEnd
@@ -251,10 +254,37 @@ class MCE_OT_MakeFiveToThree(bpy.types.Operator):
 
         for face, edges in face_edge_map.items():
             bm.faces.ensure_lookup_table()
-            if not self.alt_algo:
-                self.make_five_to_three(bm, bm.faces[face], edges)
-            else:
-                self.make_five_to_three_alt(bm, bm.faces[face], edges)
+            bm_face = bm.faces[face]
+
+            if bm_face is not None and len(bm_face.edges) == 10:
+                if not self.alt_algo:
+                    self.make_five_to_three(bm, bm_face, edges)
+                else:
+                    self.make_five_to_three_alt(bm, bm_face, edges)
+
+                if get_addon_preferences().use_with_quads:
+                    # Are we in edge select mode?
+                    if context.scene.tool_settings.mesh_select_mode[1] == True:
+                        bm.select_history.remove(edges[0])
+                        bm.select_history.remove(edges[1])
+                        bm.select_history.remove(edges[2])
+
+        if get_addon_preferences().use_with_quads:
+            # Are we in edge select mode?
+            if context.scene.tool_settings.mesh_select_mode[1] == True:
+                for i in range(0, len(bm.select_history), 2):
+                    selected_edges = [bm.select_history[i], bm.select_history[i+1]]
+                    face = get_face_with_edges(selected_edges)
+                    if face is not None and len(face.edges) == 4:
+                        new_geom = bmesh_subdivide_edge(bm, bm.select_history[i], 4)
+                        new_edges = list(filter(lambda element : isinstance(element, BMEdge), new_geom))
+                        bmesh_subdivide_edge(bm, bm.select_history[i+1], 2)
+                        
+                        edges = [new_edges[1], new_edges[2], new_edges[3]]
+                        if not self.alt_algo:
+                            self.make_five_to_three(bm, face, edges)
+                        else:
+                            self.make_five_to_three_alt(bm, face, edges)
 
         bm.edges.index_update()
         bm.verts.index_update()

@@ -22,7 +22,10 @@ class MCE_Preferences(AddonPreferences):
     enable_context_menu: BoolProperty(name="Add to context menu", default=True, 
                                     description="Add the operators to the context menu", update=update_show_in_context_menu)
 
-    restart: BoolProperty(name="Restart", default=False, options={'SKIP_SAVE'}) 
+    restart: BoolProperty(name="Restart", default=False, options={'SKIP_SAVE'})
+
+    use_with_quads: BoolProperty(name="Enable use with quad faces", default=False, 
+                                    description="Enable the ability to use the operators with quad faces by selecting two opposite edges or two adjacent edges for use with make corner")
 
     def draw(self, context):
         preferences = context.preferences
@@ -34,6 +37,7 @@ class MCE_Preferences(AddonPreferences):
         layout.prop(self, "add_to_toolbar")
         if self.add_to_toolbar:
             layout.prop(self, "add_optional_to_toolbar")
+        layout.prop(self, "use_with_quads")
         if self.restart:
             layout.label(text="Requires Restart for the changes to take effect", icon = 'ERROR')
         

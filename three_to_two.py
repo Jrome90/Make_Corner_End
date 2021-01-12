@@ -9,6 +9,9 @@ from bmesh.types import *
 from .utils import (get_selected_edges,
                     get_face_loop_for_edge,
                     bmesh_face_loop_walker,
+                    get_face_with_edges,
+                    bmesh_subdivide_edge,
+                    get_addon_preferences,
                     )
 
 class MCE_OT_MakeThreeToTwo(bpy.types.Operator):
@@ -88,14 +91,36 @@ class MCE_OT_MakeThreeToTwo(bpy.types.Operator):
         face_edge_map = defaultdict(list)
         for edge in get_selected_edges(bm):
             for face in edge.link_faces:
-                face_edge_map[face].append(edge)
+                face_edge_map[face.index].append(edge)
 
         for face, edges in face_edge_map.items():
             if len(edges) == 1:
                 edge_groups.append((face, edges[0]))
 
-        for face, edges in edge_groups:
-            self.make_three_to_two(bm, face, edges)
+        for face, edge in edge_groups:
+            bm.faces.ensure_lookup_table()
+            bm_face = bm.faces[face]
+
+            if bm_face is not None and len(bm_face.edges) == 7:
+                self.make_three_to_two(bm, bm_face, edge)
+
+                if get_addon_preferences().use_with_quads:
+                    # Are we in edge select mode?
+                    if context.scene.tool_settings.mesh_select_mode[1] == True:
+                        bm.select_history.remove(edge)
+
+        if get_addon_preferences().use_with_quads:
+            # Are we in edge select mode?
+            if context.scene.tool_settings.mesh_select_mode[1] == True:
+                for i in range(0, len(bm.select_history), 2):
+                    selected_edges = [bm.select_history[i], bm.select_history[i+1]]
+                    face = get_face_with_edges(selected_edges)
+                    if face is not None and len(face.edges) == 4:
+                        new_geom = bmesh_subdivide_edge(bm, bm.select_history[i], 2)
+                        new_edges = list(filter(lambda element : isinstance(element, BMEdge), new_geom))
+                        bmesh_subdivide_edge(bm, bm.select_history[i+1], 1)
+                        
+                        self.make_three_to_two(bm, face, new_edges[1])
 
         bm.faces.ensure_lookup_table()
         bm.edges.ensure_lookup_table()

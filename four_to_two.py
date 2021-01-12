@@ -11,7 +11,10 @@ from .utils import (get_selected_edges,
                     get_face_loops_for_vert,
                     bmesh_face_loop_walker,
                     get_face_with_verts,
+                    get_face_with_edges,
                     get_vertex_shared_by_edges,
+                    bmesh_subdivide_edge,
+                    get_addon_preferences,
                     )
 
 from .make_corner import MCE_OT_MakeCorner
@@ -40,7 +43,7 @@ class MCE_OT_MakeFourToTwo(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-    def make_four_to_two(self, bm, edges):
+    def make_four_to_two(self, bm, face, edges):
         def make_corner(bm, verts, plane_co, plane_normal):
             face = get_face_with_verts(verts)
             if face is not None and len(face.edges) == 6:
@@ -103,40 +106,40 @@ class MCE_OT_MakeFourToTwo(bpy.types.Operator):
 
                     bmesh.utils.face_split_edgenet(face, [new_edge_a, new_edge_b, new_edge_c])
 
-        verts = set()
-        for edge in edges:
-            for vert in edge.verts:
-                verts.add(vert)
-        face = get_face_with_verts(verts)
+        # verts = set()
+        # for edge in edges:
+        #     for vert in edge.verts:
+        #         verts.add(vert)
+        # face = get_face_with_verts(verts)
 
-        if face is not None and len(face.edges) == 8:
+        # if face is not None and len(face.edges) == 8:
 
-            middle_vert = get_vertex_shared_by_edges(edges)
+        middle_vert = get_vertex_shared_by_edges(edges)
 
-            middle_vert_loop = get_face_loop_for_vert(face, middle_vert)
-            face_loops = list(bmesh_face_loop_walker(face, middle_vert_loop))
+        middle_vert_loop = get_face_loop_for_vert(face, middle_vert)
+        face_loops = list(bmesh_face_loop_walker(face, middle_vert_loop))
 
-            opposite_middle_vert = face_loops[4].vert
-        
-            if middle_vert is not None and opposite_middle_vert is not None:
-                new_face, new_loop = bmesh.utils.face_split(face, middle_vert, opposite_middle_vert)
+        opposite_middle_vert = face_loops[4].vert
+    
+        if middle_vert is not None and opposite_middle_vert is not None:
+            new_face, new_loop = bmesh.utils.face_split(face, middle_vert, opposite_middle_vert)
 
-                if new_face is not None:
-                    bm.edges.index_update()
-                    new_edge = new_loop.edge
-                    edge, vert = bmesh.utils.edge_split(new_edge, middle_vert, self.position)
-                    new_vert = vert
+            if new_face is not None:
+                bm.edges.index_update()
+                new_edge = new_loop.edge
+                edge, vert = bmesh.utils.edge_split(new_edge, middle_vert, self.position)
+                new_vert = vert
 
-                    edge_a_other_vert = edges[0].other_vert(middle_vert)
-                    edge_b_other_vert = edges[1].other_vert(middle_vert)
+                edge_a_other_vert = edges[0].other_vert(middle_vert)
+                edge_b_other_vert = edges[1].other_vert(middle_vert)
 
-                    if not self.alt_algo:
-                        plane_normal = (opposite_middle_vert.co-new_vert.co).normalized()
-                        make_corner(bm, [new_vert, edge_a_other_vert], new_vert.co, plane_normal)
-                        make_corner(bm, [new_vert, edge_b_other_vert], new_vert.co, plane_normal)
-                    else:
-                        MCE_OT_MakeCorner.make_corner(bm, [new_vert, edge_a_other_vert], 0.5)
-                        MCE_OT_MakeCorner.make_corner(bm, [new_vert, edge_b_other_vert], 0.5)
+                if not self.alt_algo:
+                    plane_normal = (opposite_middle_vert.co-new_vert.co).normalized()
+                    make_corner(bm, [new_vert, edge_a_other_vert], new_vert.co, plane_normal)
+                    make_corner(bm, [new_vert, edge_b_other_vert], new_vert.co, plane_normal)
+                else:
+                    MCE_OT_MakeCorner.make_corner(bm, [new_vert, edge_a_other_vert], 0.5)
+                    MCE_OT_MakeCorner.make_corner(bm, [new_vert, edge_b_other_vert], 0.5)
 
     def execute_four_to_two(self, context):
         # Get the active mesh
@@ -148,19 +151,40 @@ class MCE_OT_MakeFourToTwo(bpy.types.Operator):
         bm.select_mode = {'EDGE'}
         bm.select_flush_mode()
 
-        edge_pairs = []
-
         face_edge_map = defaultdict(list)
         for edge in get_selected_edges(bm):
             for face in edge.link_faces:
                 face_edge_map[face.index].append(edge)
 
-        for edges in face_edge_map.values():
-            if len(edges) == 2:
-                edge_pairs.append(edges)
+        for face, edge_pair in face_edge_map.items():
+           
+            bm.faces.ensure_lookup_table()
+            bm_face = bm.faces[face]
 
-        for edge_pair in edge_pairs:
-            self.make_four_to_two(bm, edge_pair)
+            if bm_face is not None and len(bm_face.edges) == 8:
+                self.make_four_to_two(bm, bm_face, edge_pair)
+
+                if get_addon_preferences().use_with_quads:
+                    # Are we in edge select mode?
+                    if context.scene.tool_settings.mesh_select_mode[1] == True:
+                        bm.select_history.remove(edge_pair[0])
+                        bm.select_history.remove(edge_pair[1])
+
+        if get_addon_preferences().use_with_quads:
+            # Are we in edge select mode?
+            if context.scene.tool_settings.mesh_select_mode[1] == True:
+                for i in range(0, len(bm.select_history), 2):
+
+                    selected_edges = [bm.select_history[i], bm.select_history[i+1]]
+                    face = get_face_with_edges(selected_edges)
+
+                    if face is not None and len(face.edges) == 4:
+                        new_geom = bmesh_subdivide_edge(bm, bm.select_history[i], 3)
+                        new_edges = list(filter(lambda element : isinstance(element, BMEdge), new_geom))
+                        bmesh_subdivide_edge(bm, bm.select_history[i+1], 1)
+
+                        edges = [new_edges[1], new_edges[2]]
+                        self.make_four_to_two(bm, face, edges)
 
         bm.faces.ensure_lookup_table()
         bm.edges.ensure_lookup_table()

@@ -11,6 +11,9 @@ from .utils import (get_selected_edges,
                     get_face_loops_for_vert,
                     get_face_with_verts,
                     get_vertex_shared_by_edges,
+                    get_face_with_edges,
+                    bmesh_subdivide_edge,
+                    get_addon_preferences,
                     )
 
 class MCE_OT_MakeCorner(bpy.types.Operator):
@@ -180,6 +183,28 @@ class MCE_OT_MakeCorner(bpy.types.Operator):
                 self.make_corner(bm, vert_pair, fac=self.position)
             else:
                 self.make_corner_alt(bm, vert_pair, fac=self.position)
+
+        if get_addon_preferences().use_with_quads:
+            # Are we in edge select mode?
+            if context.scene.tool_settings.mesh_select_mode[1] == True:
+                for i in range(0, len(bm.select_history), 2):
+
+                    selected_edges = [bm.select_history[i], bm.select_history[i+1]]
+                    face = get_face_with_edges(selected_edges)
+
+                    if face is not None and len(face.edges) == 4:
+                        new_geom_a = bmesh_subdivide_edge(bm, bm.select_history[i], 1)
+                        new_vert_a = list(filter(lambda element : isinstance(element, BMVert), new_geom_a))
+
+                        new_geom_b = bmesh_subdivide_edge(bm, bm.select_history[i+1], 1)
+                        new_vert_b = list(filter(lambda element : isinstance(element, BMVert), new_geom_b))
+                        
+                        vert_pair = [new_vert_a[0], new_vert_b[0]]
+
+                        if not self.uneven_spacing:
+                            self.make_corner(bm, vert_pair, fac=self.position)
+                        else:
+                            self.make_corner_alt(bm, vert_pair, fac=self.position)
 
         bm.faces.ensure_lookup_table()
         bm.edges.ensure_lookup_table()
