@@ -140,7 +140,7 @@ def unregister():
                 bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
 
                 bpy.utils.unregister_tool(Tool_ThreeToTwo)
-    except:
+    except (ValueError, AttributeError):
         pass
 
     finally:
