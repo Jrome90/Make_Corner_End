@@ -127,23 +127,31 @@ def register():
     
 def unregister():
 
-    if get_addon_preferences().add_to_toolbar:
-        bpy.utils.unregister_tool(Tool_MakeCorner)
-        bpy.utils.unregister_tool(Tool_MakeEnd)
-        if get_addon_preferences().add_optional_to_toolbar:
-            bpy.utils.unregister_tool(Tool_FourToTwo)
-            bpy.utils.unregister_tool(Tool_FiveToThree)
-            bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
-            bpy.utils.unregister_tool(Tool_ThreeToTwo)
+    try:
+        if get_addon_preferences().add_to_toolbar:
+            bpy.utils.unregister_tool(Tool_MakeCorner)
+            bpy.utils.unregister_tool(Tool_MakeEnd)
 
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+            if get_addon_preferences().add_optional_to_toolbar:
+                bpy.utils.unregister_tool(Tool_FourToTwo)
 
-    bpy.types.VIEW3D_MT_edit_mesh_edges.remove(menu_draw)
-    bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_draw)
-    remove_from_context_menu()
+                bpy.utils.unregister_tool(Tool_FiveToThree)
 
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
+                bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
 
-    addon_keymaps.clear()
+                bpy.utils.unregister_tool(Tool_ThreeToTwo)
+    except:
+        pass
+
+    finally:
+        for c in reversed(classes):
+            bpy.utils.unregister_class(c)
+
+        bpy.types.VIEW3D_MT_edit_mesh_edges.remove(menu_draw)
+        bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_draw)
+        remove_from_context_menu()
+
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+
+        addon_keymaps.clear()
