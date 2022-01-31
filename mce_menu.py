@@ -3,7 +3,7 @@ from bpy.types import Menu
 
 class MCE_MT_PieMenu(Menu):
     bl_idname = "MESH_MT_MCE_Menu"
-    bl_label = ""
+    bl_label = "Make Corner End Pie Menu"
 
     def draw(self, context):
         layout = self.layout

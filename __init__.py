@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Jrome",
     "description" : "Make Corner: Select the vertices that terminates a loop on each adjacent edge for the face, or select an edge that connects the two vertices. \n Make End: Select the vertices or the edge between them that are created when two parellel edge loops terminate at the same side.",
     "blender" : (2, 90, 0),
-    "version" : (0, 5, 0),
+    "version" : (0, 5, 1),
     "location" : "",
     "warning" : "",
     "category" : "Mesh"
@@ -123,27 +123,39 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
 
-    kmi_menu = km.keymap_items.new("wm.call_menu_pie", 'COMMA', 'PRESS', alt=True, repeat=False).properties.name = MCE_MT_PieMenu.bl_idname
+    kmi = km.keymap_items.new("wm.call_menu_pie", 'COMMA', 'PRESS', alt=True, repeat=False)
+    kmi.properties.name = MCE_MT_PieMenu.bl_idname
+
+    addon_keymaps.append((km, kmi))
+
     
 def unregister():
 
-    if get_addon_preferences().add_to_toolbar:
-        bpy.utils.unregister_tool(Tool_MakeCorner)
-        bpy.utils.unregister_tool(Tool_MakeEnd)
-        if get_addon_preferences().add_optional_to_toolbar:
-            bpy.utils.unregister_tool(Tool_FourToTwo)
-            bpy.utils.unregister_tool(Tool_FiveToThree)
-            bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
-            bpy.utils.unregister_tool(Tool_ThreeToTwo)
+    try:
+        if get_addon_preferences().add_to_toolbar:
+            bpy.utils.unregister_tool(Tool_MakeCorner)
+            bpy.utils.unregister_tool(Tool_MakeEnd)
 
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+            if get_addon_preferences().add_optional_to_toolbar:
+                bpy.utils.unregister_tool(Tool_FourToTwo)
 
-    bpy.types.VIEW3D_MT_edit_mesh_edges.remove(menu_draw)
-    bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_draw)
-    remove_from_context_menu()
+                bpy.utils.unregister_tool(Tool_FiveToThree)
 
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
+                bpy.utils.unregister_tool(Tool_FiveToThreeAlt)
 
-    addon_keymaps.clear()
+                bpy.utils.unregister_tool(Tool_ThreeToTwo)
+    except (ValueError, AttributeError):
+        pass
+
+    finally:
+        for c in reversed(classes):
+            bpy.utils.unregister_class(c)
+
+        bpy.types.VIEW3D_MT_edit_mesh_edges.remove(menu_draw)
+        bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_draw)
+        remove_from_context_menu()
+
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+
+        addon_keymaps.clear()
